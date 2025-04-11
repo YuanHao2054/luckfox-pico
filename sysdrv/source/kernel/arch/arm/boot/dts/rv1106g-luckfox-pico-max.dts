@@ -12,7 +12,57 @@
 / {
 	model = "Luckfox Pico Max";
 	compatible = "rockchip,rv1103g-38x38-ipc-v10", "rockchip,rv1106g3";
+
+	/*LCD_DC*/
+	gpio2b1:gpio2b1 {  // 原：gpio1pa2
+		compatible = "regulator-fixed";
+		pinctrl-names = "default";
+		pinctrl-0 = <&gpio2_b1>;  // 原：gpio1_pa2
+		regulator-name = "gpio2_b1";  // 原：gpio1_pa2
+		regulator-always-on; 
+    };
+
+	/*LCD_RST*/
+	gpio1c3:gpio1c3 {  // 原：gpio1pc3
+		compatible = "regulator-fixed";
+		pinctrl-names = "default";
+		pinctrl-0 = <&gpio1_c3>;  // 原：gpio1_pc3
+		regulator-name = "gpio1_c3";  // 原：gpio1_pc3
+		regulator-always-on; 
+	};
+
+	/*LCD_BL*/
+	gpio2b0:gpio2b0 {  // 原：gpio0pa4
+		compatible = "regulator-fixed";
+		pinctrl-names = "default";
+		pinctrl-0 = <&gpio2_b0>;  // 原：gpio0_pa4
+		regulator-name = "gpio2_b0";  // 原：gpio0_pa4
+		regulator-always-on; 
+    };
+
 };
+
+&pinctrl{
+	gpio2-b1 {  // 新增（原gpio1-pa2保留）
+		gpio2_b1:gpio2_b1 {  // DC新引脚
+			rockchip,pins = <2 RK_PB1 RK_FUNC_GPIO &pcfg_pull_none>;
+        };
+    };
+
+    gpio1-c3 {  // 修改（原gpio1-pc3保留）
+        gpio1_c3:gpio1_c3 {  // RST引脚
+            rockchip,pins = <1 RK_PC3 RK_FUNC_GPIO &pcfg_pull_none>;
+        };
+    };
+
+    gpio2-b0 {  // 新增（原gpio0-pa4保留）
+        gpio2_b0:gpio2_b0 {  // BL新引脚
+            rockchip,pins = <2 RK_PB0 RK_FUNC_GPIO &pcfg_pull_none>;
+        };
+    };
+
+};
+
 
 /**********CRU**********/
 //&cru {
@@ -88,14 +138,36 @@
 };
 
 /**********SPI**********/
+// &spi0 {
+// 	status = "disabled";
+// 	spidev@0 {
+// 		spi-max-frequency = <50000000>;
+// 	};
+//   fbtft@0 {
+// 		spi-max-frequency = <50000000>;
+//   };
+// };
+
 &spi0 {
-	status = "disabled";
+    status = "okay";
+    pinctrl-names = "default";
+    pinctrl-0 = <&spi0m0_clk &spi0m0_mosi &spi0m0_cs0>;
+
 	spidev@0 {
-		spi-max-frequency = <50000000>;
+		status = "disabled";
 	};
-  fbtft@0 {
-		spi-max-frequency = <50000000>;
-  };
+    
+    fbtft@0 {                        
+        status = "okay";
+        compatible = "sitronix,st7789v"; 
+        reg = <0>;            
+        fps = <30>;
+        buswidth = <8>;
+        debug = <0x7>;
+        led-gpios = <&gpio2 RK_PB0 GPIO_ACTIVE_LOW>;  // 原：gpio0_pa4
+        dc = <&gpio2 RK_PB1 GPIO_ACTIVE_HIGH>;        // 原：gpio1_pa2
+        reset = <&gpio1 RK_PC3 GPIO_ACTIVE_LOW>;      // 原：gpio1_pc3
+    };
 };
 
 /**********I2C**********/
